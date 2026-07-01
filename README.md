@@ -5,4 +5,4 @@ Waggle intends to become an independent, correct and performant BitTorrent clien
 Waggle's name is a direct reference to the "waggle dance" that honey bees perform to share information amongst each other. 
 
 ## Motivation
-Waggle purpose is to serve as a learning exercise.
+Waggle's purpose is to serve as a learning exercise.
