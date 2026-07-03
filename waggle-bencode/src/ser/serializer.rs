@@ -1,7 +1,7 @@
-use std::fmt::Display;
 use serde::Serialize;
 use serde::ser;
 use serde::ser::Impossible;
+use std::fmt::Display;
 use std::io::Write;
 
 struct Serializer<W: Write> {
