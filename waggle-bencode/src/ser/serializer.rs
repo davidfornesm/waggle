@@ -30,7 +30,7 @@ impl<W: Write> Serializer<W> {
     }
 }
 
-impl<'a, W: Write> ser::Serializer for &'a mut Serializer<W> {
+impl<W: Write> ser::Serializer for &mut Serializer<W> {
     type Ok = ();
     type Error = crate::ser::error::Error;
     type SerializeSeq = Impossible<(), Self::Error>;
