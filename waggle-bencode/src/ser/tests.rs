@@ -23,3 +23,19 @@ fn serialize_zero() {
     let serialized = to_bytes(&number).unwrap();
     assert_eq!(serialized, expected)
 }
+
+#[test]
+fn serialize_bytes() {
+    let bytes = "hello";
+    let expected = b"5:hello";
+    let serialized = to_bytes(&bytes).unwrap();
+    assert_eq!(serialized, expected)
+}
+
+#[test]
+fn serialize_empty_bytes() {
+    let bytes = "";
+    let expected = b"0:";
+    let serialized = to_bytes(&bytes).unwrap();
+    assert_eq!(serialized, expected)
+}

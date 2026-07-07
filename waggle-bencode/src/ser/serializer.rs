@@ -22,6 +22,12 @@ impl<W: Write> Serializer<W> {
         write!(self.writer, "i{number}e")?;
         Ok(())
     }
+
+    fn write_bytes(&mut self, bytes: &[u8]) -> crate::ser::result::Result<()> {
+        write!(self.writer, "{}:", bytes.len())?;
+        self.writer.write_all(bytes)?;
+        Ok(())
+    }
 }
 
 impl<'a, W: Write> ser::Serializer for &'a mut Serializer<W> {
@@ -36,7 +42,7 @@ impl<'a, W: Write> ser::Serializer for &'a mut Serializer<W> {
     type SerializeStructVariant = Impossible<(), Self::Error>;
 
     fn serialize_bool(self, v: bool) -> Result<Self::Ok, Self::Error> {
-        Err(Self::Error::NotSupported)
+        Err(Self::Error::NotSupported("bool"))
     }
 
     fn serialize_i8(self, v: i8) -> Result<Self::Ok, Self::Error> {
@@ -72,23 +78,24 @@ impl<'a, W: Write> ser::Serializer for &'a mut Serializer<W> {
     }
 
     fn serialize_f32(self, v: f32) -> Result<Self::Ok, Self::Error> {
-        Err(Self::Error::NotSupported)
+        Err(Self::Error::NotSupported("f32"))
     }
 
     fn serialize_f64(self, v: f64) -> Result<Self::Ok, Self::Error> {
-        Err(Self::Error::NotSupported)
+        Err(Self::Error::NotSupported("f64"))
     }
 
     fn serialize_char(self, v: char) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        let mut buffer = [0u8; 4];
+        self.serialize_str(v.encode_utf8(&mut buffer))
     }
 
     fn serialize_str(self, v: &str) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.serialize_bytes(v.as_bytes())
     }
 
     fn serialize_bytes(self, v: &[u8]) -> Result<Self::Ok, Self::Error> {
-        todo!()
+        self.write_bytes(v)
     }
 
     fn serialize_none(self) -> Result<Self::Ok, Self::Error> {

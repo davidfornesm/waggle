@@ -4,7 +4,7 @@ use std::fmt::{Display, Formatter};
 #[derive(Debug)]
 pub enum Error {
     Message(String),
-    NotSupported,
+    NotSupported(&'static str),
 }
 
 impl std::error::Error for Error {}
@@ -13,7 +13,7 @@ impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> std::fmt::Result {
         match self {
             Error::Message(msg) => f.write_str(msg),
-            Error::NotSupported => f.write_str("not supported"),
+            Error::NotSupported(msg) => write!(f, "not supported: {}", msg),
         }
     }
 }
