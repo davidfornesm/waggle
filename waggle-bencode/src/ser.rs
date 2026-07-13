@@ -3,7 +3,7 @@ use serde::ser;
 use serde::ser::{Impossible, SerializeSeq, SerializeTuple, SerializeTupleStruct};
 use std::io::Write;
 
-pub fn to_bytes<T>(value: &T) -> crate::ser::result::Result<Vec<u8>>
+pub fn to_bytes<T>(value: &T) -> crate::error::Result<Vec<u8>>
 where
     T: ?Sized + Serialize,
 {
@@ -22,7 +22,7 @@ struct ListSerializer<'s, W> {
 
 impl<'s, W: Write> ser::Serializer for &'s mut Serializer<W> {
     type Ok = ();
-    type Error = crate::ser::error::Error;
+    type Error = crate::error::Error;
     type SerializeSeq = ListSerializer<'s, W>;
     type SerializeTuple = ListSerializer<'s, W>;
     type SerializeTupleStruct = ListSerializer<'s, W>;
@@ -205,7 +205,7 @@ impl<'s, W: Write> ser::Serializer for &'s mut Serializer<W> {
 
 impl<W: Write> SerializeSeq for ListSerializer<'_, W> {
     type Ok = ();
-    type Error = crate::ser::error::Error;
+    type Error = crate::error::Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -221,7 +221,7 @@ impl<W: Write> SerializeSeq for ListSerializer<'_, W> {
 
 impl<W: Write> SerializeTuple for ListSerializer<'_, W> {
     type Ok = ();
-    type Error = crate::ser::error::Error;
+    type Error = crate::error::Error;
 
     fn serialize_element<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -237,7 +237,7 @@ impl<W: Write> SerializeTuple for ListSerializer<'_, W> {
 
 impl<W: Write> SerializeTupleStruct for ListSerializer<'_, W> {
     type Ok = ();
-    type Error = crate::ser::error::Error;
+    type Error = crate::error::Error;
 
     fn serialize_field<T>(&mut self, value: &T) -> Result<(), Self::Error>
     where
@@ -252,7 +252,7 @@ impl<W: Write> SerializeTupleStruct for ListSerializer<'_, W> {
 }
 
 impl<W: Write> Serializer<W> {
-    fn write_number<I: itoa::Integer>(&mut self, number: I) -> crate::ser::result::Result<()> {
+    fn write_number<I: itoa::Integer>(&mut self, number: I) -> crate::error::Result<()> {
         self.write_number_delimiter()?;
         let mut buffer = itoa::Buffer::new();
         self.writer.write_all(buffer.format(number).as_bytes())?;
@@ -260,7 +260,7 @@ impl<W: Write> Serializer<W> {
         Ok(())
     }
 
-    fn write_bytes(&mut self, bytes: &[u8]) -> crate::ser::result::Result<()> {
+    fn write_bytes(&mut self, bytes: &[u8]) -> crate::error::Result<()> {
         let mut buffer = itoa::Buffer::new();
         self.writer
             .write_all(buffer.format(bytes.len()).as_bytes())?;
@@ -269,34 +269,34 @@ impl<W: Write> Serializer<W> {
         Ok(())
     }
 
-    fn write_number_delimiter(&mut self) -> crate::ser::result::Result<()> {
+    fn write_number_delimiter(&mut self) -> crate::error::Result<()> {
         self.writer.write_all(b"i")?;
         Ok(())
     }
 
-    fn write_list_delimiter(&mut self) -> crate::ser::result::Result<()> {
+    fn write_list_delimiter(&mut self) -> crate::error::Result<()> {
         self.writer.write_all(b"l")?;
         Ok(())
     }
 
-    fn write_end(&mut self) -> crate::ser::result::Result<()> {
+    fn write_end(&mut self) -> crate::error::Result<()> {
         self.writer.write_all(b"e")?;
         Ok(())
     }
 }
 
 impl<W: Write> ListSerializer<'_, W> {
-    fn start(&mut self) -> Result<(), crate::ser::error::Error> {
+    fn start(&mut self) -> Result<(), crate::error::Error> {
         self.serializer.write_list_delimiter()
     }
-    fn serialize_element<T>(&mut self, value: &T) -> Result<(), crate::ser::error::Error>
+    fn serialize_element<T>(&mut self, value: &T) -> Result<(), crate::error::Error>
     where
         T: ?Sized + Serialize,
     {
         value.serialize(&mut *self.serializer)
     }
 
-    fn end(self) -> Result<(), crate::ser::error::Error> {
+    fn end(self) -> Result<(), crate::error::Error> {
         self.serializer.write_end()
     }
 }

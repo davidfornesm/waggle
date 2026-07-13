@@ -7,6 +7,8 @@ pub enum Error {
     NotSupported(&'static str),
 }
 
+pub type Result<T> = std::result::Result<T, Error>;
+
 impl std::error::Error for Error {}
 
 impl Display for Error {
