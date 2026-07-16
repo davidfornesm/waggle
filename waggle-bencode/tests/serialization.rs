@@ -1,12 +1,13 @@
-use std::assert_matches;
 use serde::{Serialize, Serializer};
-use waggle_bencode::{to_bytes, Error};
+use std::assert_matches;
+use std::collections::BTreeMap;
+use waggle_bencode::{Error, to_bytes};
 
 #[test]
 fn serialize_bool() {
     let value: bool = false;
     let result = to_bytes(&value);
-    assert_matches!(result.unwrap_err(), Error::NotSupported("bool"))
+    assert_eq!(result.unwrap(), b"i0e")
 }
 
 #[test]
@@ -107,20 +108,19 @@ fn serialize_str() {
     assert_eq!(result.unwrap(), b"1:a")
 }
 
-
-struct Bytes(&'static [u8]);
-
-impl Serialize for Bytes {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer
-    {
-        serializer.serialize_bytes(self.0)
-    }
-}
-
 #[test]
 fn serialize_bytes() {
+    struct Bytes(&'static [u8]);
+
+    impl Serialize for Bytes {
+        fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+        where
+            S: Serializer,
+        {
+            serializer.serialize_bytes(self.0)
+        }
+    }
+
     let value: Bytes = Bytes(b"a");
     let result = to_bytes(&value);
     assert_eq!(result.unwrap(), b"1:a")
@@ -147,24 +147,48 @@ fn serialize_unit() {
     assert_matches!(result.unwrap_err(), Error::NotSupported("unit"))
 }
 
-#[derive(Serialize)]
-struct Empty;
-
 #[test]
 fn serialize_unit_struct() {
+    #[derive(Serialize)]
+    struct Empty;
+
     let value: Empty = Empty;
     let result = to_bytes(&value);
     assert_matches!(result.unwrap_err(), Error::NotSupported("unit_struct"))
 }
 
+#[test]
+fn serialize_unit_variant() {
+    #[derive(Serialize)]
+    enum UnitVariant {
+        A,
+    }
 
-#[derive(Serialize)]
-struct Wrapper(u8);
+    let value = UnitVariant::A;
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"1:A")
+}
+
 #[test]
 fn serialize_newtype_struct() {
+    #[derive(Serialize)]
+    struct Wrapper(u8);
+
     let value: Wrapper = Wrapper(0);
     let result = to_bytes(&value);
     assert_eq!(result.unwrap(), b"i0e")
+}
+
+#[test]
+fn serialize_newtype_variant() {
+    #[derive(Serialize)]
+    enum NewtypeVariant {
+        A(u8),
+    }
+
+    let value = NewtypeVariant::A(0);
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"d1:Ai0ee")
 }
 
 #[test]
@@ -181,13 +205,56 @@ fn serialize_tuple() {
     assert_eq!(result.unwrap(), b"li0ee")
 }
 
-#[derive(Serialize)]
-struct Pair(u8, u8);
-
 #[test]
 fn serialize_tuple_struct() {
-    let value: Pair = Pair(0,0);
+    #[derive(Serialize)]
+    struct Pair(u8, u8);
+
+    let value: Pair = Pair(0, 0);
     let result = to_bytes(&value);
     assert_eq!(result.unwrap(), b"li0ei0ee")
 }
 
+#[test]
+fn serialize_tuple_variant() {
+    #[derive(Serialize)]
+    enum TupleVariant {
+        A(u8, u8),
+    }
+
+    let value = TupleVariant::A(0, 0);
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"d1:Ali0ei0eee")
+}
+
+#[test]
+fn serialize_map() {
+    let mut value = BTreeMap::new();
+    value.insert("a", 0);
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"d1:ai0ee")
+}
+
+#[test]
+fn serialize_struct() {
+    #[derive(Serialize)]
+    struct Struct {
+        a: u8,
+    }
+
+    let value = Struct { a: 0 };
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"d1:ai0ee")
+}
+
+#[test]
+fn serialize_struct_variant() {
+    #[derive(Serialize)]
+    enum StructVariant {
+        A { a: u8 },
+    }
+
+    let value = StructVariant::A { a: 0 };
+    let result = to_bytes(&value);
+    assert_eq!(result.unwrap(), b"d1:Ad1:ai0eee")
+}

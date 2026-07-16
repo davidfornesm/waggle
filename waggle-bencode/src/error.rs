@@ -5,6 +5,9 @@ use std::fmt::{Display, Formatter};
 pub enum Error {
     Message(String),
     NotSupported(&'static str),
+    MalformedEntry,
+    UnsortedKey,
+    DuplicateKey,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -16,6 +19,9 @@ impl Display for Error {
         match self {
             Error::Message(msg) => f.write_str(msg),
             Error::NotSupported(msg) => write!(f, "not supported: {}", msg),
+            Error::MalformedEntry => f.write_str("malformed entry"),
+            Error::UnsortedKey => f.write_str("unsorted key"),
+            Error::DuplicateKey => f.write_str("duplicate key"),
         }
     }
 }
