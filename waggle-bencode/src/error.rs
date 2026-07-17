@@ -5,7 +5,8 @@ use std::fmt::{Display, Formatter};
 pub enum Error {
     Message(String),
     NotSupported(&'static str),
-    MalformedEntry,
+    ExpectedKey,
+    ExpectedValue,
     UnsortedKey,
     DuplicateKey,
 }
@@ -19,9 +20,10 @@ impl Display for Error {
         match self {
             Error::Message(msg) => f.write_str(msg),
             Error::NotSupported(msg) => write!(f, "not supported: {}", msg),
-            Error::MalformedEntry => f.write_str("malformed entry"),
             Error::UnsortedKey => f.write_str("unsorted key"),
             Error::DuplicateKey => f.write_str("duplicate key"),
+            Error::ExpectedKey => f.write_str("expected key"),
+            Error::ExpectedValue => f.write_str("expected value"),
         }
     }
 }

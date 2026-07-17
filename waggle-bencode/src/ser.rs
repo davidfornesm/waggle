@@ -478,7 +478,7 @@ impl<W: Write> SerializeMap for MapSerializer<'_, W> {
         T: ?Sized + Serialize,
     {
         match self.map_state {
-            MapState::New | MapState::AwaitingKey => Err(Error::MalformedEntry),
+            MapState::New | MapState::AwaitingKey => Err(Error::ExpectedKey),
             MapState::AwaitingValue => {
                 value.serialize(&mut *self.serializer)?;
                 self.map_state = MapState::AwaitingKey;
@@ -615,7 +615,7 @@ impl<'s, W: Write> MapSerializer<'s, W> {
         match (&self.map_state, key.cmp(&self.last_key)) {
             (MapState::AwaitingKey, Ordering::Less) => Err(Error::UnsortedKey),
             (MapState::AwaitingKey, Ordering::Equal) => Err(Error::DuplicateKey),
-            (MapState::AwaitingValue, _) => Err(Error::MalformedEntry),
+            (MapState::AwaitingValue, _) => Err(Error::ExpectedValue),
             (MapState::New, _) | (MapState::AwaitingKey, Ordering::Greater) => {
                 self.serializer.write_bytes(key)?;
                 self.last_key.clear();
@@ -628,7 +628,7 @@ impl<'s, W: Write> MapSerializer<'s, W> {
 
     fn finish(self) -> Result<&'s mut Serializer<W>> {
         match self.map_state {
-            MapState::AwaitingValue => Err(Error::MalformedEntry),
+            MapState::AwaitingValue => Err(Error::ExpectedValue),
             MapState::New | MapState::AwaitingKey => {
                 self.serializer.write_end_suffix()?;
                 Ok(self.serializer)
