@@ -5,6 +5,8 @@ members = ["waggle", "waggle-bencode"]
 [workspace.package]
 license = "MIT OR Apache-2.0"
 readme = "README.md"
+version = "0.1.0"
 edition = "2024"
 repository = "https://github.com/davidfornesm/waggle"
 description = "Waggle intends to become an independent, correct and performant BitTorrent client written purely in Rust."
+publish = false
