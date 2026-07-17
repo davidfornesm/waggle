@@ -8,3 +8,5 @@ repository.workspace = true
 description.workspace = true
 
 [dependencies]
+itoa = "1.0.18"
+serde = { version = "1.0.228", features = ["derive"] }
