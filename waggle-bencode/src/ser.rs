@@ -195,7 +195,7 @@ impl<'s, W: Write> ser::Serializer for &'s mut Serializer<W> {
         _name: &'static str,
         len: usize,
     ) -> Result<Self::SerializeTupleStruct> {
-        self.serialize_tuple(len)
+        self.serialize_seq(Some(len))
     }
 
     fn serialize_tuple_variant(
@@ -419,7 +419,7 @@ impl<W: Write> SerializeSeq for ListSerializer<'_, W> {
     where
         T: ?Sized + Serialize,
     {
-        self.serialize_value(value)
+        value.serialize(&mut *self.serializer)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -436,7 +436,7 @@ impl<W: Write> SerializeTuple for ListSerializer<'_, W> {
     where
         T: ?Sized + Serialize,
     {
-        self.serialize_value(value)
+        SerializeSeq::serialize_element(self, value)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -453,7 +453,7 @@ impl<W: Write> SerializeTupleStruct for ListSerializer<'_, W> {
     where
         T: ?Sized + Serialize,
     {
-        self.serialize_value(value)
+        SerializeSeq::serialize_element(self, value)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -501,7 +501,7 @@ impl<W: Write> SerializeStruct for MapSerializer<'_, W> {
     where
         T: ?Sized + Serialize,
     {
-        self.serialize_entry(key, value)
+        SerializeMap::serialize_entry(self, key, value)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -518,7 +518,7 @@ impl<W: Write> SerializeTupleVariant for VariantSerializer<ListSerializer<'_, W>
     where
         T: ?Sized + Serialize,
     {
-        self.inner_serializer.serialize_field(value)
+        SerializeSeq::serialize_element(&mut self.inner_serializer, value)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -534,7 +534,7 @@ impl<W: Write> SerializeStructVariant for VariantSerializer<MapSerializer<'_, W>
     where
         T: ?Sized + Serialize,
     {
-        self.inner_serializer.serialize_entry(key, value)
+        SerializeMap::serialize_entry(&mut self.inner_serializer, key, value)
     }
 
     fn end(self) -> Result<Self::Ok> {
@@ -587,13 +587,6 @@ impl<W: Write> Serializer<W> {
 impl<'s, W: Write> ListSerializer<'s, W> {
     fn new(serializer: &'s mut Serializer<W>) -> Self {
         Self { serializer }
-    }
-
-    fn serialize_value<T>(&mut self, value: &T) -> Result<()>
-    where
-        T: ?Sized + Serialize,
-    {
-        value.serialize(&mut *self.serializer)
     }
 
     fn finish(self) -> Result<&'s mut Serializer<W>> {
