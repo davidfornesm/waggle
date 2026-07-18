@@ -440,8 +440,7 @@ impl<W: Write> SerializeTuple for ListSerializer<'_, W> {
     }
 
     fn end(self) -> Result<Self::Ok> {
-        self.finish()?;
-        Ok(())
+        SerializeSeq::end(self)
     }
 }
 
@@ -457,8 +456,7 @@ impl<W: Write> SerializeTupleStruct for ListSerializer<'_, W> {
     }
 
     fn end(self) -> Result<Self::Ok> {
-        self.finish()?;
-        Ok(())
+        SerializeSeq::end(self)
     }
 }
 
@@ -505,8 +503,7 @@ impl<W: Write> SerializeStruct for MapSerializer<'_, W> {
     }
 
     fn end(self) -> Result<Self::Ok> {
-        self.finish()?;
-        Ok(())
+        SerializeMap::end(self)
     }
 }
 
