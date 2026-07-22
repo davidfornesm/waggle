@@ -12,9 +12,9 @@ pub fn to_bytes<T>(value: &T) -> Result<Vec<u8>>
 where
     T: ?Sized + Serialize,
 {
-    let mut serializer = Serializer::new(Vec::new());
-    value.serialize(&mut serializer)?;
-    Ok(serializer.writer)
+    let mut writer = Vec::new();
+    to_writer(&mut writer, value)?;
+    Ok(writer)
 }
 
 pub fn to_writer<W, T>(writer: W, value: &T) -> Result<()>
