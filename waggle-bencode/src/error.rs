@@ -1,5 +1,5 @@
-use serde::ser;
 use serde::de;
+use serde::ser;
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
@@ -47,7 +47,7 @@ impl ser::Error for Error {
 impl de::Error for Error {
     fn custom<T>(msg: T) -> Self
     where
-        T: Display
+        T: Display,
     {
         Error::Message(msg.to_string())
     }
