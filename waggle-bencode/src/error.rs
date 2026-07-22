@@ -12,7 +12,7 @@ pub enum Error {
     DuplicateKey,
     Syntax,
     Trailing,
-    Eof
+    Eof,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -30,7 +30,7 @@ impl Display for Error {
             Error::ExpectedValue => f.write_str("expected value"),
             Error::Syntax => f.write_str("syntax"),
             Error::Trailing => f.write_str("trailing"),
-            Error::Eof => f.write_str("eof")
+            Error::Eof => f.write_str("eof"),
         }
     }
 }

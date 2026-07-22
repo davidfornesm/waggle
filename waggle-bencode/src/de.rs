@@ -1,7 +1,18 @@
 use crate::Error;
 use crate::error::Result;
-use serde::de::Visitor;
+use serde::de::{DeserializeOwned, Visitor};
 use serde::{Deserialize, de};
+use std::io::Read;
+
+pub fn from_reader<R, T>(mut reader: R) -> Result<T>
+where
+    R: Read,
+    T: DeserializeOwned,
+{
+    let mut source = Vec::new();
+    reader.read_to_end(&mut source)?;
+    from_bytes(&source)
+}
 
 pub fn from_bytes<'de, T>(source: &'de [u8]) -> Result<T>
 where
@@ -29,6 +40,43 @@ impl<'de> Deserializer<'de> {
             Err(Error::Trailing)
         }
     }
+
+    fn next(&mut self) -> Result<u8> {
+        let (&byte, rest) = self.source.split_first().ok_or(Error::Eof)?;
+        self.source = rest;
+        Ok(byte)
+    }
+
+    fn expect(&mut self, expected: u8) -> Result<()> {
+        let byte = self.next()?;
+        if byte == expected {
+            Ok(())
+        } else {
+            Err(Error::Syntax)
+        }
+    }
+
+    fn digits(&mut self) -> Result<&'de [u8]> {
+        let end = self
+            .source
+            .iter()
+            .take_while(|byte| byte.is_ascii_digit())
+            .count();
+        let (bytes, rest) = self.source.split_at_checked(end).ok_or(Error::Eof)?;
+        self.source = rest;
+        Ok(bytes)
+    }
+
+    fn parse_bool(&mut self) -> Result<bool> {
+        self.expect(b'i')?;
+        let value = match self.next()? {
+            b'0' => Ok(false),
+            b'1' => Ok(true),
+            _ => Err(Error::Syntax),
+        }?;
+        self.expect(b'e')?;
+        Ok(value)
+    }
 }
 
 impl<'de, 'd> de::Deserializer<'de> for &'d mut Deserializer<'de> {
@@ -45,7 +93,7 @@ impl<'de, 'd> de::Deserializer<'de> for &'d mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        todo!()
+        visitor.visit_bool(self.parse_bool()?)
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> std::result::Result<V::Value, Self::Error>
