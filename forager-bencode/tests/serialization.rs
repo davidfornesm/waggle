@@ -1,7 +1,7 @@
 use serde::{Serialize, Serializer};
 use std::assert_matches;
 use std::collections::BTreeMap;
-use waggle_bencode::{Error, to_bytes};
+use forager_bencode::{Error, to_bytes};
 
 #[test]
 fn serialize_bool() {

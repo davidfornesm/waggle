@@ -3,6 +3,18 @@
 version = 4
 
 [[package]]
+name = "forager"
+version = "0.1.0"
+
+[[package]]
+name = "forager-bencode"
+version = "0.1.0"
+dependencies = [
+ "itoa",
+ "serde",
+]
+
+[[package]]
 name = "itoa"
 version = "1.0.18"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -72,15 +84,3 @@ name = "unicode-ident"
 version = "1.0.24"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "e6e4313cd5fcd3dad5cafa179702e2b244f760991f45397d14d4ebf38247da75"
-
-[[package]]
-name = "waggle"
-version = "0.1.0"
-
-[[package]]
-name = "waggle-bencode"
-version = "0.1.0"
-dependencies = [
- "itoa",
- "serde",
-]
