@@ -1,4 +1,9 @@
 use crate::{Error, Result};
+use nom::Parser;
+use nom::branch::alt;
+use nom::bytes::tag;
+use nom::combinator::value;
+use nom::sequence::delimited;
 use serde::de::{DeserializeOwned, Visitor};
 use serde::{Deserialize, de};
 use std::io::Read;
@@ -39,6 +44,23 @@ impl<'de> Deserializer<'de> {
             Err(Error::Trailing)
         }
     }
+
+    fn parse<Output>(
+        &mut self,
+        mut parser: impl Parser<&'de [u8], Output = Output, Error = nom::error::Error<&'de [u8]>>,
+    ) -> Result<Output> {
+        let (rest, output) = parser.parse(self.source)?;
+        self.source = rest;
+        Ok(output)
+    }
+
+    fn parse_bool(&mut self) -> Result<bool> {
+        self.parse(delimited(
+            tag("i"),
+            alt((value(false, tag("0")), value(true, tag("1")))),
+            tag("e"),
+        ))
+    }
 }
 
 impl<'de, 'd> de::Deserializer<'de> for &'d mut Deserializer<'de> {
@@ -55,7 +77,7 @@ impl<'de, 'd> de::Deserializer<'de> for &'d mut Deserializer<'de> {
     where
         V: Visitor<'de>,
     {
-        todo!()
+        visitor.visit_bool(self.parse_bool()?)
     }
 
     fn deserialize_i8<V>(self, visitor: V) -> Result<V::Value>
