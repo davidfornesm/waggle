@@ -13,9 +13,9 @@ where
     R: Read,
     T: DeserializeOwned,
 {
-    let mut soure = Vec::new();
-    reader.read_to_end(&mut soure)?;
-    from_bytes(&soure)
+    let mut source = Vec::new();
+    reader.read_to_end(&mut source)?;
+    from_bytes(&source)
 }
 
 pub fn from_bytes<'de, T>(source: &'de [u8]) -> Result<T>
@@ -37,7 +37,7 @@ impl<'de> Deserializer<'de> {
         Self { source }
     }
 
-    fn finish(&self) -> Result<()> {
+    fn finish(self) -> Result<()> {
         if self.source.is_empty() {
             Ok(())
         } else {
@@ -54,11 +54,21 @@ impl<'de> Deserializer<'de> {
         Ok(output)
     }
 
+    fn number_prefix()
+    -> impl Parser<&'de [u8], Output = &'de [u8], Error = nom::error::Error<&'de [u8]>> {
+        tag("i")
+    }
+
+    fn end_suffix()
+    -> impl Parser<&'de [u8], Output = &'de [u8], Error = nom::error::Error<&'de [u8]>> {
+        tag("e")
+    }
+
     fn parse_bool(&mut self) -> Result<bool> {
         self.parse(delimited(
-            tag("i"),
+            Self::number_prefix(),
             alt((value(false, tag("0")), value(true, tag("1")))),
-            tag("e"),
+            Self::end_suffix(),
         ))
     }
 }
