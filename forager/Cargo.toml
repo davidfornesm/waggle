@@ -1,5 +1,5 @@
 [package]
-name = "waggle"
+name = "forager"
 version.workspace = true
 edition.workspace = true
 license.workspace = true
