@@ -1,4 +1,4 @@
-use serde::ser;
+use serde::{de, ser};
 use std::fmt::{Display, Formatter};
 
 #[derive(Debug)]
@@ -9,6 +9,7 @@ pub enum Error {
     ExpectedValue,
     UnsortedKey,
     DuplicateKey,
+    Trailing,
 }
 
 pub type Result<T> = std::result::Result<T, Error>;
@@ -24,6 +25,7 @@ impl Display for Error {
             Error::DuplicateKey => f.write_str("duplicate key"),
             Error::ExpectedKey => f.write_str("expected key"),
             Error::ExpectedValue => f.write_str("expected value"),
+            Error::Trailing => f.write_str("trailing"),
         }
     }
 }
@@ -35,6 +37,15 @@ impl From<std::io::Error> for Error {
 }
 
 impl ser::Error for Error {
+    fn custom<T>(msg: T) -> Self
+    where
+        T: Display,
+    {
+        Error::Message(msg.to_string())
+    }
+}
+
+impl de::Error for Error {
     fn custom<T>(msg: T) -> Self
     where
         T: Display,
